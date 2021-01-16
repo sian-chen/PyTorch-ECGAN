@@ -99,6 +99,8 @@ class make_worker(object):
 
         self.G_loss = G_loss
         self.D_loss = D_loss
+        self.cls_disc_lambda = cfgs.cls_disc_lambda
+        self.cls_gen_lambda = cfgs.cls_gen_lambda
         self.contrastive_lambda = cfgs.contrastive_lambda
         self.margin = cfgs.margin
         self.tempering_type = cfgs.tempering_type
@@ -269,7 +271,7 @@ class make_worker(object):
 
                         dis_acml_loss = self.D_loss(dis_out_real, dis_out_fake)
                         if self.conditional_strategy == "ACGAN":
-                            dis_acml_loss += (self.ce_loss(cls_out_real, real_labels) + self.ce_loss(cls_out_fake, fake_labels))
+                            dis_acml_loss += self.cls_disc_lambda * (self.ce_loss(cls_out_real, real_labels) + self.ce_loss(cls_out_fake, fake_labels))
                         elif self.conditional_strategy == "NT_Xent_GAN":
                             real_images_aug = CR_DiffAug(real_images)
                             _, cls_embed_real_aug, dis_out_real_aug = self.dis_model(real_images_aug, real_labels)
@@ -429,7 +431,7 @@ class make_worker(object):
                             gen_acml_loss += self.gen_lambda*zcr_gen_loss
 
                         if self.conditional_strategy == "ACGAN":
-                            gen_acml_loss += self.ce_loss(cls_out_fake, fake_labels)
+                            gen_acml_loss += self.cls_gen_lambda * self.ce_loss(cls_out_fake, fake_labels)
                         elif self.conditional_strategy == "ContraGAN":
                             gen_acml_loss += self.contrastive_lambda*self.contrastive_criterion(cls_embed_fake, cls_proxies_fake, fake_cls_mask, fake_labels, t, self.margin)
                         elif self.conditional_strategy == "Proxy_NCA_GAN":

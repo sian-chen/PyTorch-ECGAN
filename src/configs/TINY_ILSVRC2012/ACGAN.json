@@ -50,6 +50,8 @@
       "loss_function": {
         "adv_loss": "hinge",
   
+        "cls_disc_lambda": 1,
+        "cls_gen_lambda": 0.1,
         "contrastive_lambda": "N/A",
         "margin": "N/A", 
         "tempering_type": "N/A",
