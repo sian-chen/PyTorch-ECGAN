@@ -103,6 +103,7 @@ class make_worker(object):
         self.cls_disc_lambda = cfgs.cls_disc_lambda
         self.cls_gen_lambda = cfgs.cls_gen_lambda
         self.contrastive_lambda = cfgs.contrastive_lambda
+        self.cond_lambda = cfgs.cond_lambda
         self.uncond_lambda = cfgs.uncond_lambda
         self.margin = cfgs.margin
         self.tempering_type = cfgs.tempering_type
@@ -282,9 +283,7 @@ class make_worker(object):
                             raise NotImplementedError
 
                         if self.conditional_strategy == 'ECGAN':
-                            dis_acml_loss = self.D_loss(dis_out_real, dis_out_fake)
-                            if self.uncond_lambda:
-                                dis_acml_loss += self.uncond_lambda * self.D_loss(dis_uncond_out_real, dis_uncond_out_fake)
+                            dis_acml_loss = self.cond_lambda * self.D_loss(dis_out_real, dis_out_fake) + self.uncond_lambda * self.D_loss(dis_uncond_out_real, dis_uncond_out_fake)
                             if self.cls_disc_lambda:
                                 dis_acml_loss += self.cls_disc_lambda * self.ce_loss(cls_out_real, real_labels)
                             if self.contrastive_lambda:
