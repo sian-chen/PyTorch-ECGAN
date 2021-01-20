@@ -154,12 +154,12 @@ def check_flag_1(tempering_type, pos_collected_numerator, conditional_strategy, 
     assert int(gradient_penalty_for_dis)*int(deep_regret_analysis_for_dis) == 0, \
         "You can't simultaneously apply Gradient Penalty (GP) and Deep Regret Analysis (DRA)."
 
-    if conditional_strategy == "ContraGAN":
+    if conditional_strategy in ["ContraGAN", "ECGAN"]:
         assert tempering_type == "constant" or tempering_type == "continuous" or tempering_type == "discrete", \
             "Tempering_type should be one of constant, continuous, or discrete."
 
     if pos_collected_numerator:
-        assert conditional_strategy == "ContraGAN", "Pos_collected_numerator option is not appliable except for ContraGAN."
+        assert conditional_strategy in ["ContraGAN", "ECGAN"], "Pos_collected_numerator option is not appliable except for ContraGAN."
 
     if distributed_data_parallel:
         msg = 'Evaluation results of the image generation with DDP are not exact. ' + \

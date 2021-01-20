@@ -75,7 +75,7 @@ def latent_optimise(zs, fake_labels, gen_model, dis_model, conditional_strategy,
 
 
 def set_temperature(conditional_strategy, tempering_type, start_temperature, end_temperature, step_count, tempering_step, total_step):
-    if conditional_strategy == 'ContraGAN':
+    if conditional_strategy in ['ContraGAN', 'ECGAN']:
         if tempering_type == 'continuous':
             t = start_temperature + step_count*(end_temperature - start_temperature)/total_step
         elif tempering_type == 'discrete':

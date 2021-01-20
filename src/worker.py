@@ -88,6 +88,7 @@ class make_worker(object):
         self.hypersphere_dim = cfgs.hypersphere_dim
         self.d_spectral_norm = cfgs.d_spectral_norm
         self.g_spectral_norm = cfgs.g_spectral_norm
+        self.contrastive_type = cfgs.contrastive_type
 
         self.G_optimizer = G_optimizer
         self.D_optimizer = D_optimizer
@@ -102,6 +103,7 @@ class make_worker(object):
         self.cls_disc_lambda = cfgs.cls_disc_lambda
         self.cls_gen_lambda = cfgs.cls_gen_lambda
         self.contrastive_lambda = cfgs.contrastive_lambda
+        self.uncond_lambda = cfgs.uncond_lambda
         self.margin = cfgs.margin
         self.tempering_type = cfgs.tempering_type
         self.tempering_step = cfgs.tempering_step
@@ -167,7 +169,7 @@ class make_worker(object):
                      self.mixed_precision, self.gradient_penalty_for_dis, self.deep_regret_analysis_for_dis, self.cr, self.bcr,
                      self.zcr, self.distributed_data_parallel, self.synchronized_bn)
 
-        if self.conditional_strategy in ['ProjGAN', 'ContraGAN', 'Proxy_NCA_GAN']:
+        if self.conditional_strategy in ['ProjGAN', 'ContraGAN', 'Proxy_NCA_GAN', 'ECGAN']:
             if isinstance(self.dis_model, DataParallel) or isinstance(self.dis_model, DistributedDataParallel):
                 self.embedding_layer = self.dis_model.module.embedding
             else:
@@ -179,6 +181,13 @@ class make_worker(object):
             self.NCA_criterion = Proxy_NCA_loss(self.rank, self.embedding_layer, self.num_classes, self.batch_size)
         elif self.conditional_strategy == 'NT_Xent_GAN':
             self.NT_Xent_criterion = NT_Xent_loss(self.rank, self.batch_size)
+        elif self.conditional_strategy == 'ECGAN':
+            if self.contrastive_type == 'ContraGAN':
+                self.contrastive_criterion = Conditional_Contrastive_loss(self.rank, self.batch_size, self.pos_collected_numerator)
+            elif self.contrastive_type == 'Proxy_NCA':
+                self.NCA_criterion = Proxy_NCA_loss(self.rank, self.embedding_layer, self.num_classes, self.batch_size)
+            elif self.contrastive_type == 'NT_Xent':
+                self.NT_Xent_criterion = NT_Xent_loss(self.rank, self.batch_size)
         else:
             pass
 
@@ -266,24 +275,45 @@ class make_worker(object):
                         elif self.conditional_strategy in ["NT_Xent_GAN", "Proxy_NCA_GAN", "ContraGAN"]:
                             cls_proxies_real, cls_embed_real, dis_out_real = self.dis_model(real_images, real_labels)
                             cls_proxies_fake, cls_embed_fake, dis_out_fake = self.dis_model(fake_images, fake_labels)
+                        elif self.conditional_strategy == 'ECGAN':
+                            cls_out_real, dis_out_real, dis_uncond_out_real, cls_proxies_real, cls_embed_real = self.dis_model(real_images, real_labels)
+                            cls_out_fake, dis_out_fake, dis_uncond_out_fake, cls_proxies_fake, cls_embed_fake = self.dis_model(fake_images, fake_labels)
                         else:
                             raise NotImplementedError
 
-                        dis_acml_loss = self.D_loss(dis_out_real, dis_out_fake)
-                        if self.conditional_strategy == "ACGAN":
-                            dis_acml_loss += self.cls_disc_lambda * (self.ce_loss(cls_out_real, real_labels) + self.ce_loss(cls_out_fake, fake_labels))
-                        elif self.conditional_strategy == "NT_Xent_GAN":
-                            real_images_aug = CR_DiffAug(real_images)
-                            _, cls_embed_real_aug, dis_out_real_aug = self.dis_model(real_images_aug, real_labels)
-                            dis_acml_loss += self.contrastive_lambda*self.NT_Xent_criterion(cls_embed_real, cls_embed_real_aug, t)
-                        elif self.conditional_strategy == "Proxy_NCA_GAN":
-                            dis_acml_loss += self.contrastive_lambda*self.NCA_criterion(cls_embed_real, cls_proxies_real, real_labels)
-                        elif self.conditional_strategy == "ContraGAN":
-                            real_cls_mask = make_mask(real_labels, self.num_classes, self.rank)
-                            dis_acml_loss += self.contrastive_lambda*self.contrastive_criterion(cls_embed_real, cls_proxies_real,
-                                                                                                real_cls_mask, real_labels, t, self.margin)
+                        if self.conditional_strategy == 'ECGAN':
+                            dis_acml_loss = self.D_loss(dis_out_real, dis_out_fake)
+                            if self.uncond_lambda:
+                                dis_acml_loss += self.uncond_lambda * self.D_loss(dis_uncond_out_real, dis_uncond_out_fake)
+                            if self.cls_disc_lambda:
+                                dis_acml_loss += self.cls_disc_lambda * self.ce_loss(cls_out_real, real_labels)
+                            if self.contrastive_lambda:
+                                if self.contrastive_type == "NT_Xent":
+                                    real_images_aug = CR_DiffAug(real_images)
+                                    _, dis_out_real_aug, _, _, cls_embed_real_aug = self.dis_model(real_images_aug, real_labels)
+                                    dis_acml_loss += self.contrastive_lambda*self.NT_Xent_criterion(cls_embed_real, cls_embed_real_aug, t)
+                                elif self.contrastive_type == "Proxy_NCA":
+                                    dis_acml_loss += self.contrastive_lambda*self.NCA_criterion(cls_embed_real, cls_proxies_real, real_labels)
+                                elif self.contrastive_type == "ContraGAN":
+                                    real_cls_mask = make_mask(real_labels, self.num_classes, self.rank)
+                                    dis_acml_loss += self.contrastive_lambda*self.contrastive_criterion(cls_embed_real, cls_proxies_real,
+                                                                                                        real_cls_mask, real_labels, t, self.margin)
                         else:
-                            pass
+                            dis_acml_loss = self.D_loss(dis_out_real, dis_out_fake)
+                            if self.conditional_strategy == "ACGAN":
+                                dis_acml_loss += self.cls_disc_lambda * (self.ce_loss(cls_out_real, real_labels) + self.ce_loss(cls_out_fake, fake_labels))
+                            elif self.conditional_strategy == "NT_Xent_GAN":
+                                real_images_aug = CR_DiffAug(real_images)
+                                _, cls_embed_real_aug, dis_out_real_aug = self.dis_model(real_images_aug, real_labels)
+                                dis_acml_loss += self.contrastive_lambda*self.NT_Xent_criterion(cls_embed_real, cls_embed_real_aug, t)
+                            elif self.conditional_strategy == "Proxy_NCA_GAN":
+                                dis_acml_loss += self.contrastive_lambda*self.NCA_criterion(cls_embed_real, cls_proxies_real, real_labels)
+                            elif self.conditional_strategy == "ContraGAN":
+                                real_cls_mask = make_mask(real_labels, self.num_classes, self.rank)
+                                dis_acml_loss += self.contrastive_lambda*self.contrastive_criterion(cls_embed_real, cls_proxies_real,
+                                                                                                    real_cls_mask, real_labels, t, self.margin)
+                            else:
+                                pass
 
                         if self.cr:
                             real_images_aug = CR_DiffAug(real_images)
@@ -415,8 +445,9 @@ class make_worker(object):
                         elif self.conditional_strategy == "ProjGAN" or self.conditional_strategy == "no":
                             dis_out_fake = self.dis_model(fake_images, fake_labels)
                         elif self.conditional_strategy in ["NT_Xent_GAN", "Proxy_NCA_GAN", "ContraGAN"]:
-                            fake_cls_mask = make_mask(fake_labels, self.num_classes, self.rank)
                             cls_proxies_fake, cls_embed_fake, dis_out_fake = self.dis_model(fake_images, fake_labels)
+                        elif self.conditional_strategy == 'ECGAN':
+                            cls_out_fake, dis_out_fake, dis_uncond_out_fake, cls_proxies_fake, cls_embed_fake = self.dis_model(fake_images, fake_labels)
                         else:
                             raise NotImplementedError
 
@@ -433,6 +464,7 @@ class make_worker(object):
                         if self.conditional_strategy == "ACGAN":
                             gen_acml_loss += self.cls_gen_lambda * self.ce_loss(cls_out_fake, fake_labels)
                         elif self.conditional_strategy == "ContraGAN":
+                            fake_cls_mask = make_mask(fake_labels, self.num_classes, self.rank)
                             gen_acml_loss += self.contrastive_lambda*self.contrastive_criterion(cls_embed_fake, cls_proxies_fake, fake_cls_mask, fake_labels, t, self.margin)
                         elif self.conditional_strategy == "Proxy_NCA_GAN":
                             gen_acml_loss += self.contrastive_lambda*self.NCA_criterion(cls_embed_fake, cls_proxies_fake, fake_labels)
@@ -440,6 +472,19 @@ class make_worker(object):
                             fake_images_aug = CR_DiffAug(fake_images)
                             _, cls_embed_fake_aug, dis_out_fake_aug = self.dis_model(fake_images_aug, fake_labels)
                             gen_acml_loss += self.contrastive_lambda*self.NT_Xent_criterion(cls_embed_fake, cls_embed_fake_aug, t)
+                        elif self.conditional_strategy == 'ECGAN':
+                            if self.uncond_lambda:
+                                gen_acml_loss += self.uncond_lambda * self.G_loss(dis_uncond_out_fake)
+                            if self.contrastive_lambda:
+                                if self.contrastive_type == "ContraGAN":
+                                    fake_cls_mask = make_mask(fake_labels, self.num_classes, self.rank)
+                                    gen_acml_loss += self.contrastive_lambda*self.contrastive_criterion(cls_embed_fake, cls_proxies_fake, fake_cls_mask, fake_labels, t, self.margin)
+                                elif self.contrastive_type == "Proxy_NCA":
+                                    gen_acml_loss += self.contrastive_lambda*self.NCA_criterion(cls_embed_fake, cls_proxies_fake, fake_labels)
+                                elif self.contrastive_type == "NT_Xent":
+                                    fake_images_aug = CR_DiffAug(fake_images)
+                                    _, dis_out_fake_aug, _, _, cls_embed_fake_aug = self.dis_model(fake_images_aug, fake_labels)
+                                    gen_acml_loss += self.contrastive_lambda*self.NT_Xent_criterion(cls_embed_fake, cls_embed_fake_aug, t)
                         else:
                             pass
 
@@ -593,7 +638,7 @@ class make_worker(object):
                                                                            self.latent_op_step4eval, self.latent_op_alpha, self.latent_op_beta, self.rank, self.logger)
             PR_Curve = plot_pr_curve(precision, recall, self.run_name, self.logger)
 
-            if self.conditional_strategy in ['ProjGAN', 'ContraGAN', 'Proxy_NCA_GAN']:
+            if self.conditional_strategy in ['ProjGAN', 'ContraGAN', 'Proxy_NCA_GAN', "ECGAN"]:
                 classes = torch.tensor([c for c in range(self.num_classes)], dtype=torch.long).to(self.rank)
                 if self.dataset_name == "cifar10":
                     labels = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
@@ -630,7 +675,7 @@ class make_worker(object):
                 self.writer.add_scalars('F_beta_inv score', {'{num} generated images'.format(num=str(self.num_eval[self.eval_type])):f_beta_inv}, step)
                 self.writer.add_scalars('IS score', {'{num} generated images'.format(num=str(self.num_eval[self.eval_type])):kl_score}, step)
                 self.writer.add_figure('PR_Curve', PR_Curve, global_step=step)
-                if self.conditional_strategy in ['ProjGAN', 'ContraGAN', 'Proxy_NCA_GAN']:
+                if self.conditional_strategy in ['ProjGAN', 'ContraGAN', 'Proxy_NCA_GAN', "ECGAN"]:
                     self.writer.add_figure('Similarity_heatmap', sim_heatmap, global_step=step)
                 self.logger.info('F_{beta} score (Step: {step}, Using {type} images): {F_beta}'.format(beta=beta4PR, step=step, type=self.eval_type, F_beta=f_beta))
                 self.logger.info('F_1/{beta} score (Step: {step}, Using {type} images): {F_beta_inv}'.format(beta=beta4PR, step=step, type=self.eval_type, F_beta_inv=f_beta_inv))
