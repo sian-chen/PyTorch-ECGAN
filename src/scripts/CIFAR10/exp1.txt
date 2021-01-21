@@ -1,0 +1,44 @@
+# exp1_1.sh
+exp_configs/CIFAR10/ecgan1_none.json
+exp_configs/CIFAR10/ecgan1_contragan.json
+
+# exp1_2.sh
+exp_configs/CIFAR10/ecgan1_ntxent.json
+exp_configs/CIFAR10/ecgan2_none_ce01.json
+
+# exp1_3.sh
+exp_configs/CIFAR10/ecgan2_contragan_ce01.json
+exp_configs/CIFAR10/ecgan2_ntxent_ce01.json
+
+# exp1_4.sh
+exp_configs/CIFAR10/ecgan2_none_ce005.json
+exp_configs/CIFAR10/ecgan2_contragan_ce005.json
+
+# exp1_5.sh
+exp_configs/CIFAR10/ecgan2_ntxent_ce005.json
+# exp_configs/CIFAR10/ecgan2_none_ce001.json
+exp_configs/CIFAR10/ecgan2_none_ce10.json
+
+# exp1_6.sh
+# exp_configs/CIFAR10/ecgan2_contragan_ce001.json
+# exp_configs/CIFAR10/ecgan2_ntxent_ce001.json
+exp_configs/CIFAR10/ecgan2_contragan_ce10.json
+exp_configs/CIFAR10/ecgan2_ntxent_ce10.json
+
+# exp1_7.sh
+# exp_configs/CIFAR10/ecgan2_none_ce0005.json
+# exp_configs/CIFAR10/ecgan2_contragan_ce0005.json
+exp_configs/CIFAR10/ecgan2_none_ce1.json
+exp_configs/CIFAR10/ecgan2_contragan_ce1.json
+
+# exp1_8.sh
+# exp_configs/CIFAR10/ecgan2_ntxent_ce0005.json
+# exp_configs/CIFAR10/ecgan2_none_ce0001.json
+exp_configs/CIFAR10/ecgan2_ntxent_ce1.json
+exp_configs/CIFAR10/ecgan2_none_ce0p1.json
+
+# exp1_9.sh
+# exp_configs/CIFAR10/ecgan2_contragan_ce0001.json
+# exp_configs/CIFAR10/ecgan2_ntxent_ce0001.json
+exp_configs/CIFAR10/ecgan2_contragan_ce0p1.json
+exp_configs/CIFAR10/ecgan2_ntxent_ce0p1.json
