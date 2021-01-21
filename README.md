@@ -1,3 +1,19 @@
+## Si-An's README
+1. Following the installation instruction bellow in setupt the environment
+
+2. Downloading dataset
+```
+cd Pytorch-ECGAN
+wget https://www.csie.ntu.edu.tw/~d09922007/data.tar.gz
+tar zxf data.tar.gz
+```
+
+3. Run test script
+```
+cd Pytorch-ECGAN
+src/scripts/TINY_ILSVRC2012/test.sh
+```
+
 <p align="center">
   <img width="60%" src="https://raw.githubusercontent.com/POSTECH-CVLab/PyTorch-StudioGAN/master/docs/figures/studiogan_logo.jpg" />
 </p>
