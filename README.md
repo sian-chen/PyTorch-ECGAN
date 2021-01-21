@@ -1,9 +1,9 @@
 ## Si-An's README
-1. Following the installation instruction bellow in setupt the environment
+1. Following the installation instruction bellow to setup the environment
 
-2. Downloading dataset
+2. Download dataset
 ```
-cd Pytorch-ECGAN
+cd PyTorch-ECGAN
 wget https://www.csie.ntu.edu.tw/~d09922007/data.tar.gz
 tar zxf data.tar.gz
 ```
