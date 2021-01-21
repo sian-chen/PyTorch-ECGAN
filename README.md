@@ -10,8 +10,15 @@ tar zxf data.tar.gz
 
 3. Run test script
 ```
-cd Pytorch-ECGAN
+cd PyTorch-ECGAN
 src/scripts/TINY_ILSVRC2012/test.sh
+```
+
+4. Check result
+```
+cd PyTorch-ECGAN
+python src/collect_result.py
+# results are saved in result.xlsx
 ```
 
 <p align="center">
