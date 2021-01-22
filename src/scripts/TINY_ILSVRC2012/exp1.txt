@@ -8,11 +8,11 @@ exp_configs/TINY_ILSVRC2012/ecgan1_contragan.json
 
 # exp1_2.sh seed 0,1
 exp_configs/TINY_ILSVRC2012/ecgan1_ntxent.json
-exp_configs/TINY_ILSVRC2012/ecgan2_none_ce1.json
+exp_configs/TINY_ILSVRC2012/ecgan2_ntxent_ce1.json
 
 # exp1_3.sh seed 0,1
 exp_configs/TINY_ILSVRC2012/ecgan2_contragan_ce1.json
-exp_configs/TINY_ILSVRC2012/ecgan2_ntxent_ce1.json
+exp_configs/TINY_ILSVRC2012/ecgan2_none_ce1.json
 
 # exp1_4.sh seed 0,1
 exp_configs/TINY_ILSVRC2012/ecgan2_none_ce0p1.json
@@ -20,11 +20,11 @@ exp_configs/TINY_ILSVRC2012/ecgan2_contragan_ce0p1.json
 
 # exp1_5.sh seed 0,1
 exp_configs/TINY_ILSVRC2012/ecgan2_ntxent_ce0p1.json
-exp_configs/TINY_ILSVRC2012/ecgan2_none_ce0p01.json
+exp_configs/TINY_ILSVRC2012/ecgan2_ntxent_ce0p01.json
 
 # exp1_6.sh seed 0,1
 exp_configs/TINY_ILSVRC2012/ecgan2_contragan_ce0p01.json
-exp_configs/TINY_ILSVRC2012/ecgan2_ntxent_ce0p01.json
+exp_configs/TINY_ILSVRC2012/ecgan2_none_ce0p01.json
 
 # exp1_7.sh seed 2
 exp_configs/TINY_ILSVRC2012/ecgan1_none.json
@@ -34,12 +34,12 @@ exp_configs/TINY_ILSVRC2012/ecgan2_none_ce1.json
 
 # exp1_8.sh seed 2
 exp_configs/TINY_ILSVRC2012/ecgan2_contragan_ce1.json
-exp_configs/TINY_ILSVRC2012/ecgan2_ntxent_ce1.json
-exp_configs/TINY_ILSVRC2012/ecgan2_none_ce0p1.json
 exp_configs/TINY_ILSVRC2012/ecgan2_contragan_ce0p1.json
+exp_configs/TINY_ILSVRC2012/ecgan2_none_ce0p1.json
+exp_configs/TINY_ILSVRC2012/ecgan2_ntxent_ce1.json
 
 # exp1_9.sh seed 2
-exp_configs/TINY_ILSVRC2012/ecgan2_ntxent_ce0p1.json
-exp_configs/TINY_ILSVRC2012/ecgan2_none_ce0p01.json
 exp_configs/TINY_ILSVRC2012/ecgan2_contragan_ce0p01.json
+exp_configs/TINY_ILSVRC2012/ecgan2_none_ce0p01.json
+exp_configs/TINY_ILSVRC2012/ecgan2_ntxent_ce0p1.json
 exp_configs/TINY_ILSVRC2012/ecgan2_ntxent_ce0p01.json
