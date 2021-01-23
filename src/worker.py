@@ -450,7 +450,10 @@ class make_worker(object):
                         else:
                             raise NotImplementedError
 
-                        gen_acml_loss = self.G_loss(dis_out_fake)
+                        if self.conditional_strategy == 'ECGAN':
+                            gen_acml_loss = self.cond_lambda * self.G_loss(dis_out_fake) + self.uncond_lambda * self.G_loss(dis_uncond_out_fake)
+                        else:
+                            gen_acml_loss = self.G_loss(dis_out_fake)
 
                         if self.latent_op:
                             gen_acml_loss += transport_cost*self.latent_norm_reg_weight
@@ -472,8 +475,6 @@ class make_worker(object):
                             _, cls_embed_fake_aug, dis_out_fake_aug = self.dis_model(fake_images_aug, fake_labels)
                             gen_acml_loss += self.contrastive_lambda*self.NT_Xent_criterion(cls_embed_fake, cls_embed_fake_aug, t)
                         elif self.conditional_strategy == 'ECGAN':
-                            if self.uncond_lambda:
-                                gen_acml_loss += self.uncond_lambda * self.G_loss(dis_uncond_out_fake)
                             if self.contrastive_lambda:
                                 if self.contrastive_type == "ContraGAN":
                                     fake_cls_mask = make_mask(fake_labels, self.num_classes, self.rank)
