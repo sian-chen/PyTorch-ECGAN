@@ -50,7 +50,7 @@ def main():
     df = df.loc[df.last_step > 0]
     df = df.sort_values('best_fid')
     print(df)
-    avg_df = df.groupby('exp_name').agg(['mean', 'std'])
+    avg_df = df.loc[df.last_step > 70000].groupby('exp_name').agg(['mean', 'std'])
     avg_df = avg_df.sort_values(('best_fid', 'mean'))
     print(avg_df)
     with pd.ExcelWriter('result.xlsx') as writer:
