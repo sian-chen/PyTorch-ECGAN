@@ -44,7 +44,7 @@
         "beta2": 0.999,
         "g_steps_per_iter": 1,
         "d_steps_per_iter": 5,
-        "total_step": 120000
+        "total_step": 150000
       },
 
       "loss_function": {
