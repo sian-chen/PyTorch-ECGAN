@@ -47,6 +47,7 @@ def main():
         record['exp_name'] = exp_name
         records.append(record)
     df = pd.DataFrame.from_records(records, columns=['exp_name'] + cols)
+    df = df.loc[df.last_step > 0]
     df = df.sort_values('best_fid')
     print(df)
     avg_df = df.groupby('exp_name').agg(['mean', 'std'])
