@@ -11,12 +11,12 @@
 
     "train": {
       "model": {
-        "architecture": "big_resnet",
-        "conditional_strategy": "ContraGAN",
-        "pos_collected_numerator": true,
-        "hypersphere_dim": 512,
+        "architecture": "dcgan",
+        "conditional_strategy": "ProjGAN",
+        "pos_collected_numerator": false,
+        "hypersphere_dim": "N/A",
         "nonlinear_embed": false,
-        "normalize_embed": true,
+        "normalize_embed": false,
         "g_spectral_norm": true,
         "d_spectral_norm": true,
         "activation_fn": "ReLU",
@@ -27,8 +27,8 @@
         "shared_dim": 128,
         "g_conv_dim": 96,
         "d_conv_dim": 96,
-        "G_depth": "N/A",
-        "D_depth": "N/A"
+        "G_depth":"N/A",
+        "D_depth":"N/A"
       },
 
       "optimization": {
@@ -54,13 +54,13 @@
         "cls_gen_lambda": "N/A",
         "cond_lambda": "N/A",
         "uncond_lambda": "N/A",
-        "contrastive_type": "ContraGAN",
-        "contrastive_lambda": 1.0,
-        "margin": 0.0,
-        "tempering_type": "discrete",
-        "tempering_step": 1,
-        "start_temperature": 1.0,
-        "end_temperature": 1.0,
+        "contrastive_type": "N/A",
+        "contrastive_lambda": "N/A",
+        "margin": "N/A",
+        "tempering_type": "N/A",
+        "tempering_step": "N/A",
+        "start_temperature": "N/A",
+        "end_temperature": "N/A",
 
         "weight_clipping_for_dis": false,
         "weight_clipping_bound": "N/A",
@@ -72,7 +72,7 @@
         "regret_penalty_lambda": "N/A",
 
         "cr": false,
-        "cr_lambda": "N/A",
+        "cr_lambda":"N/A",
 
         "bcr": false,
         "real_lambda": "N/A",
