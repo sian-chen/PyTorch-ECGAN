@@ -296,6 +296,7 @@ class Discriminator(nn.Module):
                   "256": [True, True, True, True, True, True, False],
                   "512": [True, True, True, True, True, True, True, False]}
 
+        self.num_classes = num_classes
         self.nonlinear_embed = nonlinear_embed
         self.normalize_embed = normalize_embed
         self.conditional_strategy = conditional_strategy
