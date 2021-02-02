@@ -1,5 +1,5 @@
 {
-    "data_processing":{ 
+    "data_processing":{
         "dataset_name": "tiny_imagenet",
         "data_path": "./data/TINY_ILSVRC2012",
         "img_size": 64,
@@ -8,7 +8,7 @@
         "chunk_size": 500,
         "compression": false
       },
-  
+
     "train": {
       "model": {
         "architecture": "big_resnet",
@@ -30,10 +30,10 @@
         "G_depth": "N/A",
         "D_depth": "N/A"
       },
-  
+
       "optimization": {
         "optimizer": "Adam",
-        "batch_size": 1024,
+        "batch_size": 256,
         "accumulation_steps": 1,
         "d_lr": 0.0004,
         "g_lr": 0.0001,
@@ -44,62 +44,62 @@
         "beta2": 0.999,
         "g_steps_per_iter": 1,
         "d_steps_per_iter": 1,
-        "total_step": 120000
+        "total_step": 100000
       },
-  
+
       "loss_function": {
         "adv_loss": "hinge",
-  
+
         "cls_disc_lambda": 1,
         "cls_gen_lambda": 0.1,
         "cond_lambda": 0.0,
         "uncond_lambda": 0.0,
         "contrastive_type": "N/A",
         "contrastive_lambda": "N/A",
-        "margin": "N/A", 
+        "margin": "N/A",
         "tempering_type": "N/A",
         "tempering_step": "N/A",
         "start_temperature": "N/A",
         "end_temperature": "N/A",
-  
+
         "weight_clipping_for_dis": false,
         "weight_clipping_bound": "N/A",
-  
+
         "gradient_penalty_for_dis": false,
         "gradient_penalty_lambda": "N/A",
-  
+
         "deep_regret_analysis_for_dis": false,
         "regret_penalty_lambda": "N/A",
-  
+
         "cr": false,
         "cr_lambda": "N/A",
-  
+
         "bcr": false,
         "real_lambda": "N/A",
         "fake_lambda": "N/A",
-  
+
         "zcr": false,
         "gen_lambda": "N/A",
         "dis_lambda": "N/A",
         "sigma_noise": "N/A"
       },
-  
+
       "initialization":{
         "g_init": "ortho",
         "d_init": "ortho"
       },
-  
+
       "training_and_sampling_setting":{
         "random_flip_preprocessing": true,
         "diff_aug": false,
-  
+
         "ada": false,
         "ada_target": "N/A",
         "ada_length": "N/A",
-  
+
         "prior": "gaussian",
         "truncated_factor": 1,
-  
+
         "latent_op": false,
         "latent_op_rate":"N/A",
         "latent_op_step":"N/A",
@@ -107,11 +107,11 @@
         "latent_op_alpha":"N/A",
         "latent_op_beta":"N/A",
         "latent_norm_reg_weight":"N/A",
-  
+
         "ema": true,
         "ema_decay": 0.9999,
         "ema_start": 20000
       }
     }
   }
-  
+
