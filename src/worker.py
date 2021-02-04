@@ -316,7 +316,10 @@ class make_worker(object):
 
                         if self.cr:
                             real_images_aug = CR_DiffAug(real_images)
-                            if self.conditional_strategy == "ACGAN":
+                            if self.conditional_strategy == 'ECGAN':
+                                cls_out_real_aug, dis_out_real_aug, dis_uncond_out_real_aug, cls_proxies_real_aug, cls_embed_real_aug = self.dis_model(real_images_aug, real_labels)
+                                cls_consistency_loss = self.l2_loss(cls_out_real, cls_out_real_aug)
+                            elif self.conditional_strategy == "ACGAN":
                                 cls_out_real_aug, dis_out_real_aug = self.dis_model(real_images_aug, real_labels)
                                 cls_consistency_loss = self.l2_loss(cls_out_real, cls_out_real_aug)
                             elif self.conditional_strategy == "ProjGAN" or self.conditional_strategy == "no":
@@ -327,10 +330,12 @@ class make_worker(object):
                             else:
                                 raise NotImplementedError
 
-                            consistency_loss = self.l2_loss(dis_out_real, dis_out_real_aug)
-                            if self.conditional_strategy in ["ACGAN", "NT_Xent_GAN", "Proxy_NCA_GAN", "ContraGAN"]:
-                                consistency_loss += cls_consistency_loss
-                            dis_acml_loss += self.cr_lambda*consistency_loss
+                            # consistency_loss = self.l2_loss(dis_out_real, dis_out_real_aug)
+                            # if self.conditional_strategy in ["ACGAN", "NT_Xent_GAN", "Proxy_NCA_GAN", "ContraGAN", "ECGAN"]:
+                                # consistency_loss += cls_consistency_loss
+                            # consistency_loss += cls_consistency_loss
+                            # dis_acml_loss += self.cr_lambda*consistency_loss
+                            dis_acml_loss += self.cr_lambda*cls_consistency_loss
 
                         if self.bcr:
                             real_images_aug = CR_DiffAug(real_images)
