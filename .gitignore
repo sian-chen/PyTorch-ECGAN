@@ -10,6 +10,11 @@ checkpoints/*
 figures/*
 logs/*
 *.xlsx
+src/data/*
+src/checkpoints/*
+src/figures/*
+src/logs/*
+*test*
 
 # Swap
 [._]*.s[a-v][a-z]
