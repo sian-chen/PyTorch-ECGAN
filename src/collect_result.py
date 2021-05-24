@@ -22,6 +22,9 @@ def get_best_fid_from_log(log_path):
             step = int(re.search('Step: (?P<step>\d+)', line)['step'])
             best_fid = float(re.search('([0-9\.]+)$', line).group())
             break
+    fake_CAS = None
+    intra_fid = None
+    dca = None
     for line in lines:
         if str(step) in line and 'F_8 score' in line:
             f8 = float(re.search('([0-9\.]+)$', line).group())
@@ -29,15 +32,21 @@ def get_best_fid_from_log(log_path):
             finv8 = float(re.search('([0-9\.]+)$', line).group())
         if str(step) in line and 'Inception score' in line:
             IS = float(re.search('([0-9\.]+)$', line).group())
+        if str(step) in line and 'Fake CAS' in line:
+            fake_CAS = float(re.search('([0-9\.]+)$', line).group())
+        if str(step) in line and 'Intra FID' in line:
+            intra_fid = float(re.search('([0-9\.]+)$', line).group())
+        if str(step) in line and 'Discriminator Classification Accuracy' in line:
+            dca = float(re.search('([0-9\.]+)$', line).group())
         if 'Step: ' in line and 'FID' in line:
             last_step = max(last_step, int(re.search('Step: (?P<step>\d+)', line)['step']))
-    return step, best_fid, IS, f8, finv8, last_step
+    return step, best_fid, IS, f8, finv8, fake_CAS, intra_fid, dca, last_step
 
 
 def main():
     args = parse_args()
     log_dir = args.log_dir
-    cols = ['step', 'best_fid', 'IS', 'f_8', 'f_1/8', 'last_step']
+    cols = ['step', 'best_fid', 'IS', 'f_8', 'f_1/8', 'CAS', 'intra_fid', 'DCA', 'last_step']
     exp_names, best_fids, steps = [], [], []
     records = []
     for log_path in glob.glob(os.path.join(log_dir, '*.log')):
