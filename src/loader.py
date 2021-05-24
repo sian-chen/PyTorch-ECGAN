@@ -213,6 +213,7 @@ def prepare_train_eval(rank, world_size, run_name, train_config, model_config, h
         D_loss=D_loss[cfgs.adv_loss],
         prev_ada_p=prev_ada_p,
         rank=rank,
+        bn_stat_OnTheFly=cfgs.bn_stat_OnTheFly,
         checkpoint_dir=checkpoint_dir,
         mu=mu,
         sigma=sigma,

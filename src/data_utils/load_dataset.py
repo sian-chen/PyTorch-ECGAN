@@ -127,7 +127,7 @@ class LoadDataset(Dataset):
                     self.labels = f['labels'][:]
             else:
                 mode = 'train' if self.train == True else 'valid'
-                root = os.path.join('data','CUSTOM', mode)
+                root = os.path.join(self.data_path, mode)
                 self.data = ImageFolder(root=root)
         else:
             raise NotImplementedError
