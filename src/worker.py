@@ -17,8 +17,11 @@ from datetime import datetime
 
 from metrics.IS import calculate_incep_score
 from metrics.FID import calculate_fid_score
+from metrics.IntraFID import calculate_intra_fid_score
 from metrics.F_beta import calculate_f_beta_score
 from metrics.Accuracy import calculate_accuracy
+from metrics.CAS import calculate_classifier_accuracy_score
+from metrics.DCA import calculate_discriminator_classification_accuracy
 from utils.ada import augment
 from utils.biggan_utils import interp
 from utils.sample import sample_latents, sample_1hot, make_mask, target_class_sampler
@@ -55,7 +58,7 @@ LOG_FORMAT = (
 class make_worker(object):
     def __init__(self, cfgs, run_name, best_step, logger, writer, n_gpus, gen_model, dis_model, inception_model, Gen_copy,
                  Gen_ema, train_dataset, eval_dataset, train_dataloader, eval_dataloader, G_optimizer, D_optimizer, G_loss,
-                 D_loss, prev_ada_p, rank, checkpoint_dir, mu, sigma, best_fid, best_fid_checkpoint_path):
+                 D_loss, prev_ada_p, rank, bn_stat_OnTheFly, checkpoint_dir, mu, sigma, best_fid, best_fid_checkpoint_path):
 
         self.cfgs = cfgs
         self.run_name = run_name
@@ -143,6 +146,7 @@ class make_worker(object):
         self.latent_norm_reg_weight = cfgs.latent_norm_reg_weight
 
         self.rank = rank
+        self.bn_stat_OnTheFly = bn_stat_OnTheFly
         self.print_every = cfgs.print_every
         self.save_every = cfgs.save_every
         self.checkpoint_dir = checkpoint_dir
@@ -283,20 +287,27 @@ class make_worker(object):
                             raise NotImplementedError
 
                         if self.conditional_strategy == 'ECGAN':
-                            dis_acml_loss = self.cond_lambda * self.D_loss(dis_out_real, dis_out_fake) + self.uncond_lambda * self.D_loss(dis_uncond_out_real, dis_uncond_out_fake)
+                            dis_cond_loss = self.D_loss(dis_out_real, dis_out_fake)
+                            dis_uncond_loss = self.D_loss(dis_uncond_out_real, dis_uncond_out_fake)
+                            dis_acml_loss = self.cond_lambda * dis_cond_loss + self.uncond_lambda * dis_uncond_loss
+                            dis_loss_log = {'dis_cond_loss': dis_cond_loss.item(), 'dis_uncond_loss': dis_uncond_loss.item()}
                             if self.cls_disc_lambda:
-                                dis_acml_loss += self.cls_disc_lambda * self.ce_loss(cls_out_real, real_labels)
+                                dis_ce_loss = self.ce_loss(cls_out_real, real_labels)
+                                dis_acml_loss += self.cls_disc_lambda * dis_ce_loss
+                                dis_loss_log['dis_ce_loss'] = dis_ce_loss.item()
                             if self.contrastive_lambda:
                                 if self.contrastive_type == "NT_Xent":
                                     real_images_aug = CR_DiffAug(real_images)
                                     _, dis_out_real_aug, _, _, cls_embed_real_aug = self.dis_model(real_images_aug, real_labels)
-                                    dis_acml_loss += self.contrastive_lambda*self.NT_Xent_criterion(cls_embed_real, cls_embed_real_aug, t)
+                                    dis_contra_loss = self.NT_Xent_criterion(cls_embed_real, cls_embed_real_aug, t)
                                 elif self.contrastive_type == "Proxy_NCA":
-                                    dis_acml_loss += self.contrastive_lambda*self.NCA_criterion(cls_embed_real, cls_proxies_real, real_labels)
+                                    dis_contra_loss = self.NCA_criterion(cls_embed_real, cls_proxies_real, real_labels)
                                 elif self.contrastive_type == "ContraGAN":
                                     real_cls_mask = make_mask(real_labels, self.num_classes, self.rank)
-                                    dis_acml_loss += self.contrastive_lambda*self.contrastive_criterion(cls_embed_real, cls_proxies_real,
-                                                                                                        real_cls_mask, real_labels, t, self.margin)
+                                    dis_contra_loss = self.contrastive_criterion(cls_embed_real, cls_proxies_real, real_cls_mask, real_labels, t, self.margin)
+                                dis_acml_loss += self.contrastive_lambda * dis_contra_loss
+                                dis_loss_log['dis_contra_loss'] = dis_contra_loss.item()
+                            self.writer.add_scalars('D_loss', dis_loss_log, step_count)
                         else:
                             dis_acml_loss = self.D_loss(dis_out_real, dis_out_fake)
                             if self.conditional_strategy == "ACGAN":
@@ -456,7 +467,10 @@ class make_worker(object):
                             raise NotImplementedError
 
                         if self.conditional_strategy == 'ECGAN':
-                            gen_acml_loss = self.cond_lambda * self.G_loss(dis_out_fake) + self.uncond_lambda * self.G_loss(dis_uncond_out_fake)
+                            gen_cond_loss = self.G_loss(dis_out_fake)
+                            gen_uncond_loss = self.G_loss(dis_uncond_out_fake)
+                            gen_acml_loss = self.cond_lambda * gen_cond_loss + self.uncond_lambda * gen_uncond_loss
+                            gen_loss_log = {'gen_cond_loss': gen_cond_loss.item(), 'gen_uncond_loss': gen_uncond_loss.item()}
                         else:
                             gen_acml_loss = self.G_loss(dis_out_fake)
 
@@ -483,13 +497,16 @@ class make_worker(object):
                             if self.contrastive_lambda:
                                 if self.contrastive_type == "ContraGAN":
                                     fake_cls_mask = make_mask(fake_labels, self.num_classes, self.rank)
-                                    gen_acml_loss += self.contrastive_lambda*self.contrastive_criterion(cls_embed_fake, cls_proxies_fake, fake_cls_mask, fake_labels, t, self.margin)
+                                    gen_contra_loss = self.contrastive_criterion(cls_embed_fake, cls_proxies_fake, fake_cls_mask, fake_labels, t, self.margin)
                                 elif self.contrastive_type == "Proxy_NCA":
-                                    gen_acml_loss += self.contrastive_lambda*self.NCA_criterion(cls_embed_fake, cls_proxies_fake, fake_labels)
+                                    gen_contra_loss = self.NCA_criterion(cls_embed_fake, cls_proxies_fake, fake_labels)
                                 elif self.contrastive_type == "NT_Xent":
                                     fake_images_aug = CR_DiffAug(fake_images)
                                     _, dis_out_fake_aug, _, _, cls_embed_fake_aug = self.dis_model(fake_images_aug, fake_labels)
-                                    gen_acml_loss += self.contrastive_lambda*self.NT_Xent_criterion(cls_embed_fake, cls_embed_fake_aug, t)
+                                    gen_contra_loss = self.NT_Xent_criterion(cls_embed_fake, cls_embed_fake_aug, t)
+                                gen_acml_loss += self.contrastive_lambda * gen_contra_loss
+                                gen_loss_log['gen_contra_loss'] = gen_contra_loss.item()
+                            self.writer.add_scalars('G_loss', gen_loss_log, step_count)
                         else:
                             pass
 
@@ -627,12 +644,32 @@ class make_worker(object):
             num_split, num_run4PR, num_cluster4PR, beta4PR = 1, 10, 20, 8
 
             self.dis_model.eval()
-            generator = change_generator_mode(self.gen_model, self.Gen_copy, standing_statistics, standing_step, self.prior,
+            generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=False, counter=self.counter)
+
+            if self.conditional_strategy in ['ACGAN', 'ECGAN']:
+                dca  = calculate_discriminator_classification_accuracy(self.eval_dataloader, generator, self.dis_model, self.num_eval[self.eval_type],
+                                                            self.truncated_factor, self.prior, self.latent_op, self.latent_op_step4eval, self.latent_op_alpha,
+                                                            self.latent_op_beta, self.rank, logger=self.logger, eval_generated_sample=True)
+                self.logger.info('Discriminator Classification Accuracy (Step: {step}, Using {type} moments): {DCA}'.format(step=step, type=self.eval_type, DCA=dca))
+                self.writer.add_scalars('DCA', {'DCA': dca}, step)
+
+            if self.dataset_name == "cifar10":
+                real_cas, fake_cas = calculate_classifier_accuracy_score(self.eval_dataloader, generator, self.dis_model, self.num_eval[self.eval_type],
+                                                            self.truncated_factor, self.prior, self.latent_op, self.latent_op_step4eval, self.latent_op_alpha,
+                                                            self.latent_op_beta, self.rank, logger=self.logger, eval_generated_sample=True)
+                self.logger.info('Real CAS (Step: {step}, Using {type} moments): {real_cas}'.format(step=step, type=self.eval_type, real_cas=real_cas))
+                self.logger.info('Fake CAS (Step: {step}, Using {type} moments): {fake_cas}'.format(step=step, type=self.eval_type, fake_cas=fake_cas))
+                intra_fid, _, _ = calculate_intra_fid_score(self.eval_dataloader, generator, self.dis_model, self.inception_model, self.num_eval[self.eval_type],
+                                                            self.truncated_factor, self.prior, self.latent_op, self.latent_op_step4eval, self.latent_op_alpha,
+                                                            self.latent_op_beta, self.rank, self.logger, None, None, self.run_name)
+                self.logger.info('Intra FID score (Step: {step}, Using {type} moments): {FID}'.format(step=step, type=self.eval_type, FID=intra_fid))
+
 
             fid_score, self.m1, self.s1 = calculate_fid_score(self.eval_dataloader, generator, self.dis_model, self.inception_model, self.num_eval[self.eval_type],
                                                               self.truncated_factor, self.prior, self.latent_op, self.latent_op_step4eval, self.latent_op_alpha,
                                                               self.latent_op_beta, self.rank, self.logger, self.mu, self.sigma, self.run_name)
+
 
             kl_score, kl_std = calculate_incep_score(self.eval_dataloader, generator, self.dis_model, self.inception_model, self.num_eval[self.eval_type],
                                                      self.truncated_factor, self.prior, self.latent_op, self.latent_op_step4eval, self.latent_op_alpha,
@@ -690,7 +727,7 @@ class make_worker(object):
                     self.logger.info('Best FID score (Step: {step}, Using {type} moments): {FID}'.format(step=self.best_step, type=self.eval_type, FID=self.best_fid))
 
             self.dis_model.train()
-            generator = change_generator_mode(self.gen_model, self.Gen_copy, standing_statistics, standing_step, self.prior,
+            generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=True, counter=self.counter)
 
         return is_best
@@ -703,7 +740,7 @@ class make_worker(object):
         if standing_statistics: self.counter += 1
         with torch.no_grad() if self.latent_op is False else dummy_context_mgr() as mpc:
             self.dis_model.eval()
-            generator = change_generator_mode(self.gen_model, self.Gen_copy, standing_statistics, standing_step, self.prior,
+            generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=False, counter=self.counter)
 
             if png:
@@ -723,7 +760,7 @@ class make_worker(object):
         if standing_statistics: self.counter += 1
         assert self.batch_size % 8 ==0, "batch size should be devided by 8!"
         with torch.no_grad() if self.latent_op is False else dummy_context_mgr() as mpc:
-            generator = change_generator_mode(self.gen_model, self.Gen_copy, standing_statistics, standing_step, self.prior,
+            generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=False, counter=self.counter)
 
             if self.zcr:
@@ -743,7 +780,7 @@ class make_worker(object):
             plot_img_canvas((generated_images.detach().cpu()+1)/2, "./figures/{run_name}/generated_canvas.png".\
                             format(run_name=self.run_name), self.logger, ncol)
 
-            generator = change_generator_mode(self.gen_model, self.Gen_copy, standing_statistics, standing_step, self.prior,
+            generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=True, counter=self.counter)
     ################################################################################################################################
 
@@ -754,7 +791,7 @@ class make_worker(object):
         if standing_statistics: self.counter += 1
         assert self.batch_size % 8 ==0, "batch size should be devided by 8!"
         with torch.no_grad() if self.latent_op is False else dummy_context_mgr() as mpc:
-            generator = change_generator_mode(self.gen_model, self.Gen_copy, standing_statistics, standing_step, self.prior,
+            generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=False, counter=self.counter)
 
             resnet50_model = torch.hub.load('pytorch/vision:v0.6.0', 'resnet50', pretrained=True)
@@ -796,7 +833,7 @@ class make_worker(object):
                     row_images = np.concatenate([fake_image.detach().cpu().numpy(), holder[nearest_indices]], axis=0)
                     canvas = np.concatenate((canvas, row_images), axis=0)
 
-            generator = change_generator_mode(self.gen_model, self.Gen_copy, standing_statistics, standing_step, self.prior,
+            generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=True, counter=self.counter)
     ################################################################################################################################
 
@@ -807,7 +844,7 @@ class make_worker(object):
         if standing_statistics: self.counter += 1
         assert self.batch_size % 8 ==0, "batch size should be devided by 8!"
         with torch.no_grad() if self.latent_op is False else dummy_context_mgr() as mpc:
-            generator = change_generator_mode(self.gen_model, self.Gen_copy, standing_statistics, standing_step, self.prior,
+            generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=False, counter=self.counter)
             shared = generator.module.shared if isinstance(generator, DataParallel) or isinstance(generator, DistributedDataParallel) else generator.shared
             assert int(fix_z)*int(fix_y) != 1, "unable to switch fix_z and fix_y on together!"
@@ -837,7 +874,7 @@ class make_worker(object):
                 plot_img_canvas((interpolated_images.detach().cpu()+1)/2, "./figures/{run_name}/{num}_Interpolated_images_{fix_flag}.png".\
                                 format(num=num, run_name=self.run_name, fix_flag=name), self.logger, ncol, logging=False)
 
-            generator = change_generator_mode(self.gen_model, self.Gen_copy, standing_statistics, standing_step, self.prior,
+            generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=True, counter=self.counter)
     ################################################################################################################################
 
@@ -847,7 +884,7 @@ class make_worker(object):
         if self.rank == 0: self.logger.info('Start frequency analysis....')
         if standing_statistics: self.counter += 1
         with torch.no_grad() if self.latent_op is False else dummy_context_mgr() as mpc:
-            generator = change_generator_mode(self.gen_model, self.Gen_copy, standing_statistics, standing_step, self.prior,
+            generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=False, counter=self.counter)
 
             train_iter = iter(self.train_dataloader)
@@ -899,7 +936,7 @@ class make_worker(object):
 
             plot_spectrum_image(real_gray_spectrum, fake_gray_spectrum, self.run_name, self.logger)
 
-            generator = change_generator_mode(self.gen_model, self.Gen_copy, standing_statistics, standing_step, self.prior,
+            generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=True, counter=self.counter)
     ################################################################################################################################
 
@@ -908,7 +945,7 @@ class make_worker(object):
         if self.rank == 0: self.logger.info('Start tsne analysis....')
         if standing_statistics: self.counter += 1
         with torch.no_grad() if self.latent_op is False else dummy_context_mgr() as mpc:
-            generator = change_generator_mode(self.gen_model, self.Gen_copy, standing_statistics, standing_step, self.prior,
+            generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=False, counter=self.counter)
             if isinstance(self.gen_model, DataParallel) or isinstance(self.gen_model, DistributedDataParallel):
                 dis_model = self.dis_model.module
