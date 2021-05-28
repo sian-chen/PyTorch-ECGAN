@@ -287,10 +287,14 @@ class make_worker(object):
                             raise NotImplementedError
 
                         if self.conditional_strategy == 'ECGAN':
-                            dis_cond_loss = self.D_loss(dis_out_real, dis_out_fake)
-                            dis_uncond_loss = self.D_loss(dis_uncond_out_real, dis_uncond_out_fake)
-                            dis_acml_loss = self.cond_lambda * dis_cond_loss + self.uncond_lambda * dis_uncond_loss
-                            dis_loss_log = {'dis_cond_loss': dis_cond_loss.item(), 'dis_uncond_loss': dis_uncond_loss.item()}
+                            # dis_cond_loss = self.D_loss(dis_out_real, dis_out_fake)
+                            # dis_uncond_loss = self.D_loss(dis_uncond_out_real, dis_uncond_out_fake)
+                            # dis_acml_loss = self.cond_lambda * dis_cond_loss + self.uncond_lambda * dis_uncond_loss
+                            # dis_loss_log = {'dis_cond_loss': dis_cond_loss.item(), 'dis_uncond_loss': dis_uncond_loss.item()}
+                            dis_out_real += self.uncond_lambda * dis_uncond_out_real
+                            dis_out_fake += self.uncond_lambda * dis_uncond_out_fake
+                            dis_acml_loss = self.D_loss(dis_out_real, dis_out_fake)
+                            dis_loss_log = {'dis_loss': dis_acml_loss.item()}
                             if self.cls_disc_lambda:
                                 dis_ce_loss = self.ce_loss(cls_out_real, real_labels)
                                 dis_acml_loss += self.cls_disc_lambda * dis_ce_loss
@@ -467,10 +471,13 @@ class make_worker(object):
                             raise NotImplementedError
 
                         if self.conditional_strategy == 'ECGAN':
-                            gen_cond_loss = self.G_loss(dis_out_fake)
-                            gen_uncond_loss = self.G_loss(dis_uncond_out_fake)
-                            gen_acml_loss = self.cond_lambda * gen_cond_loss + self.uncond_lambda * gen_uncond_loss
-                            gen_loss_log = {'gen_cond_loss': gen_cond_loss.item(), 'gen_uncond_loss': gen_uncond_loss.item()}
+                            # gen_cond_loss = self.G_loss(dis_out_fake)
+                            # gen_uncond_loss = self.G_loss(dis_uncond_out_fake)
+                            # gen_acml_loss = self.cond_lambda * gen_cond_loss + self.uncond_lambda * gen_uncond_loss
+                            # gen_loss_log = {'gen_cond_loss': gen_cond_loss.item(), 'gen_uncond_loss': gen_uncond_loss.item()}
+                            dis_out_fake += self.uncond_lambda * dis_uncond_out_fake
+                            gen_acml_loss = self.G_loss(dis_out_fake)
+                            gen_loss_log = {'gen_loss': gen_acml_loss.item()}
                         else:
                             gen_acml_loss = self.G_loss(dis_out_fake)
 
@@ -646,6 +653,7 @@ class make_worker(object):
             self.dis_model.eval()
             generator = change_generator_mode(self.gen_model, self.Gen_copy, self.bn_stat_OnTheFly, standing_statistics, standing_step, self.prior,
                                               self.batch_size, self.z_dim, self.num_classes, self.rank, training=False, counter=self.counter)
+
 
             if self.conditional_strategy in ['ACGAN', 'ECGAN']:
                 dca  = calculate_discriminator_classification_accuracy(self.eval_dataloader, generator, self.dis_model, self.num_eval[self.eval_type],
