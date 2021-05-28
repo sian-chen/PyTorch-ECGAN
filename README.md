@@ -1,6 +1,6 @@
 # Energy-based Conditional Generative Adversarial Network (ECGAN)
 
-This repository is the official implementation of the paper "A Unified View of cGANswith and without Classifiers".
+This repository is the official implementation of the paper "A Unified View of cGANs with and without Classifiers".
 The code is modified from [StudioGAN](https://github.com/POSTECH-CVLab/PyTorch-StudioGAN).
 
 ## Requirements
