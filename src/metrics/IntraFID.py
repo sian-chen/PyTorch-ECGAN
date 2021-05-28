@@ -83,7 +83,7 @@ def calculate_intra_activation_statistics(data_loader, generator, discriminator,
                           is_generate, latent_op, latent_op_step, latent_op_alpha, latent_op_beta, device, tqdm_disable, run_name)
     num_classes = len(np.unique(labels))
     mu, sigma = [], []
-    for i in range(num_classes):
+    for i in tqdm(range(num_classes)):
         mu.append(np.mean(act[labels == i], axis=0))
         sigma.append(np.cov(act[labels == i], rowvar=False))
     return mu, sigma
@@ -105,7 +105,7 @@ def calculate_intra_fid_score(data_loader, generator, discriminator, inception_m
                                              True, latent_op, latent_op_step, latent_op_alpha, latent_op_beta, device, tqdm_disable=disable_tqdm, run_name=run_name)
 
     intra_fid = []
-    for i in range(10):
+    for i in tqdm(range(len(m1))):
         intra_fid.append(calculate_frechet_distance(m1[i], s1[i], m2[i], s2[i]))
     intra_fid = np.mean(intra_fid)
 
