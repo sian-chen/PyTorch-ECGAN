@@ -656,10 +656,11 @@ class make_worker(object):
 
 
             if self.conditional_strategy in ['ACGAN', 'ECGAN']:
-                dca  = calculate_discriminator_classification_accuracy(self.eval_dataloader, generator, self.dis_model, self.num_eval[self.eval_type],
+                dca, entropy  = calculate_discriminator_classification_accuracy(self.eval_dataloader, generator, self.dis_model, self.num_eval[self.eval_type],
                                                             self.truncated_factor, self.prior, self.latent_op, self.latent_op_step4eval, self.latent_op_alpha,
                                                             self.latent_op_beta, self.rank, logger=self.logger, eval_generated_sample=True)
                 self.logger.info('Discriminator Classification Accuracy (Step: {step}, Using {type} moments): {DCA}'.format(step=step, type=self.eval_type, DCA=dca))
+                self.logger.info('Discriminator Classification Entropy (Step: {step}, Using {type} moments): {ENTROPY}'.format(step=step, type=self.eval_type, ENTROPY=entropy))
                 self.writer.add_scalars('DCA', {'DCA': dca}, step)
 
             if self.dataset_name == "cifar10":
