@@ -33,6 +33,11 @@ src/scripts/ILSVRC2012/macaca_ecgan_uce.sh
 python src/collect_result.py
 ```
 
+Resume training
+```
+python src/main.py -t -e --eval_type valid -c CONFIG_PATH --checkpoint_folder CHECKPOINT_DIR --load_current
+```
+
 ## Requirements
 
 - Anaconda
