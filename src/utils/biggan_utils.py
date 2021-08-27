@@ -47,12 +47,12 @@ class ema(object):
     with torch.no_grad():
       for key in self.source_dict:
         self.target_dict[key].data.copy_(self.source_dict[key].data)
-        # target_dict[key].data = source_dict[key].data # Doesn't work!
+        self.target_dict[key].requires_grad = False
 
   def update(self, itr=None):
     # If an iteration counter is provided and itr is less than the start itr,
     # peg the ema weights to the underlying weights.
-    if itr and itr < self.start_itr:
+    if itr >= 0 and itr < self.start_itr:{
       decay = 0.0
     else:
       decay = self.decay
