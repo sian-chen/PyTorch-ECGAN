@@ -15,6 +15,7 @@ src/checkpoints/*
 src/figures/*
 src/logs/*
 *test*
+src/unpublished/*
 
 # Swap
 [._]*.s[a-v][a-z]

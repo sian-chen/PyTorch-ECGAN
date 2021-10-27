@@ -79,10 +79,15 @@ The ``src/exp_configs`` directory contains all config files used in our experime
 
 To train and evaluate ECGAN-UC on CIFAR10:
 ```
-python3 src/main.py -t -e -c src/exp_configs/CIFAR10/ecgan_v2_none_0_0p01.json --seed 0
+python3 src/main.py -t -e -c src/configs/CIFAR10/ecgan_v2_none_0_0p01.json
 ```
 
 To train and evaluate ECGAN-UC on Tiny ImageNet:
 ```
-python3 src/main.py -t -e -c src/exp_configs/TINY_ILSVRC2012/ecgan_v2_none_0_0p01.json --seed 0
+python3 src/main.py -t -e -c src/configs/TINY_ILSVRC2012/ecgan_v2_none_0_0p01.json --eval_type valid
+```
+
+To train and evaluate ECGAN-UCE on ImageNet (~12 days on 8 NVIDIA V100 GPUs):
+```
+python3 src/main.py -t -e -l -sync_bn -c src/configs/ILSVRC2012/imagenet_ecgan_v2_contra_1_0p05.json --eval_type valid
 ```
