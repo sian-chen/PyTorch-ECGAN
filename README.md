@@ -109,7 +109,7 @@ If you find this work useful, please consider citing the following paper:
 @inproceedings{chen2021ECGAN,
   title   = {A Unified View of cGANs with and without Classifiers},
   author  = {Si-An Chen, Chun-Liang Li and Hsuan-Tien Lin},
-  journal = {Conference on Neural Information Processing Systems (NeurIPS)},
+  booktitle = {Advances in Neural Information Processing Systems},
   year    = {2021}
 }
 ```
