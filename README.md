@@ -23,9 +23,7 @@ mv checkpoints logs tiny_imagenet/
 
 4. Run scripts
 ```
-./src/scripts/ILSVRC2012/macaca_ecgan_uc.sh
-# or
-src/scripts/ILSVRC2012/macaca_ecgan_uce.sh
+src/scripts/ILSVRC2012/macaca_ecgan_uce_2048.sh
 ```
 
 5. Check results
