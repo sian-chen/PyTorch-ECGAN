@@ -78,7 +78,7 @@ Try ``python3 src/main.py`` to see available options.
 ```
 
 ## Examples
-The ``src/exp_configs`` directory contains all config files used in our experiments.
+The ``src/configs`` directory contains config files used in our experiments.
 
 To train and evaluate ECGAN-UC on CIFAR10:
 ```
