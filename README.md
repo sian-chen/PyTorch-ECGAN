@@ -5,7 +5,7 @@ This is the code for the NeurIPS 2021 paper "A Unified View of cGANs with and wi
 @inproceedings{chen2021ECGAN,
   title   = {A Unified View of cGANs with and without Classifiers},
   author  = {Si-An Chen, Chun-Liang Li, Hsuan-Tien Lin},
-  journal = {Conference on Neural Information Processing Systems (NeurIPS)},
+  booktitle = {Advances in Neural Information Processing Systems},
   year    = {2021}
 }
 ```
@@ -108,3 +108,4 @@ python3 src/main.py -t -e -l -sync_bn -c src/configs/ILSVRC2012/imagenet_ecgan_v
 | CIFAR-10 | ECGAN-UC | 10.078 | 7.936 | 0.990 | 0.988 | [Cfg](./src/configs/CIFAR10/ecgan_v2_none_1_0p01.json) | [Log](./logs/CIFAR10/ecgan_v2_none_1_0p01-train-2021_05_26_16_35_45.log) | [Link](https://drive.google.com/drive/folders/1Kig2Loo2Ds5N3Pqc85R6c46Hbx5n9heM?usp=sharing) |
 | Tiny ImageNet | ECGAN-UC | 18.445 | 18.319 | 0.977 | 0.973 | [Cfg](./src/configs/TINY_ILSVRC2012/ecgan_v2_none_1_0p05.json) | [Log](./logs/TINY_ILSVRC2012/ecgan_v2_none_1_0p05-train-2021_05_26_16_47_55.log) | [Link](https://drive.google.com/drive/folders/1oVAIljTEIA3b0BHRVjcnukMf3POQQ3rw?usp=sharing) |
 | ImageNet | ECGAN-UCE | 80.685 | 8.491 | 0.984 | 0.985 | [Cfg](./src/configs/ILSVRC2012/imagenet_ecgan_v2_contra_1_0p05.json) | [Log](./logs/ILSVRC2012/imagenet_ecgan_v2_contra_1_0p05-train-2021_10_03_00_11_58.log) | [Link](https://drive.google.com/drive/folders/1EkcotNsnA-KBvOCFkvpJpUVoSDRxk-EV?usp=sharing) |
+
