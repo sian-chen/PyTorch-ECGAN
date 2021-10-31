@@ -4,13 +4,14 @@ This is the code for the NeurIPS 2021 paper "A Unified View of cGANs with and wi
 ```bib
 @inproceedings{chen2021ECGAN,
   title   = {A Unified View of cGANs with and without Classifiers},
-  author  = {Si-An Chen, Chun-Liang Li, Hsuan-Tien Lin},
+  author  = {[Si-An Chen](https://scholar.google.com/citations?user=XtkmEncAAAAJ&hl=en), Chun-Liang Li, Hsuan-Tien Lin},
   booktitle = {Advances in Neural Information Processing Systems},
   year    = {2021}
 }
 ```
 
 ## Brief Introduction
+We propose a new Conditional Generative Adversarial Network (cGAN) framework called Energy-based Conditional Generative Adversarial Network (ECGAN) which provides a unified view of cGANs and achieves state-of-the-art restuls. We use the decomposition of the joint probability distribution to connect the goals of cGANs and classification as a unified framework. The framework, along with a classic energy model to parameterize distributions, justifies the use of classifiers for cGANs in a principled manner. It explains several popular cGAN variants, such as ACGAN, ProjGAN, and ContraGAN, as special cases with different levels of approximations. An illustration of the framework is shown below.
 <p align="center">
   <img width="60%" src="./images/ECGAN.png" />
 </p>
