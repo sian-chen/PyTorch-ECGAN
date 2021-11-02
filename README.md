@@ -101,7 +101,7 @@ python3 src/main.py -t -e -c src/configs/CIFAR10/ecgan_v2_none_0_0p01.json
 |---|---|---|---|---|---|---|---|---|
 | BigGAN-Mod | StudioGAN | 9.746 | 8.034 | 0.995 | 0.994 | - | - | - |
 | ContraGAN | StudioGAN | 9.729 | 8.065 | 0.993 | 0.992 | - | - | - |
-| Ours | - | 10.078 | 7.936 | 0.990 | 0.988 | [Cfg](./src/configs/CIFAR10/ecgan_v2_none_1_0p01.json) | [Log](./logs/CIFAR10/ecgan_v2_none_1_0p01-train-2021_05_26_16_35_45.log) | [Link](https://drive.google.com/drive/folders/1Kig2Loo2Ds5N3Pqc85R6c46Hbx5n9heM?usp=sharing) |
+| Ours | - | **10.078** | **7.936** | 0.990 | 0.988 | [Cfg](./src/configs/CIFAR10/ecgan_v2_none_1_0p01.json) | [Log](./logs/CIFAR10/ecgan_v2_none_1_0p01-train-2021_05_26_16_35_45.log) | [Link](https://drive.google.com/drive/folders/1Kig2Loo2Ds5N3Pqc85R6c46Hbx5n9heM?usp=sharing) |
 
 ### Tiny ImageNet (3x64x64)
 To train and evaluate ECGAN-UC on Tiny ImageNet:
@@ -113,7 +113,7 @@ python3 src/main.py -t -e -c src/configs/TINY_ILSVRC2012/ecgan_v2_none_0_0p01.js
 |---|---|---|---|---|---|---|---|---|
 | BigGAN-Mod | StudioGAN | 11.998 | 31.92 | 0.956 | 0.879 | - | - | - |
 | ContraGAN | StudioGAN | 13.494 | 27.027 | 0.975 | 0.902 | - | - | - |
-| Ours | - | 18.445 | 18.319 | 0.977 | 0.973 | [Cfg](./src/configs/TINY_ILSVRC2012/ecgan_v2_none_1_0p05.json) | [Log](./logs/TINY_ILSVRC2012/ecgan_v2_none_1_0p05-train-2021_05_26_16_47_55.log) | [Link](https://drive.google.com/drive/folders/1oVAIljTEIA3b0BHRVjcnukMf3POQQ3rw?usp=sharing) |
+| Ours | - | **18.445** | **18.319** | **0.977** | **0.973** | [Cfg](./src/configs/TINY_ILSVRC2012/ecgan_v2_none_1_0p05.json) | [Log](./logs/TINY_ILSVRC2012/ecgan_v2_none_1_0p05-train-2021_05_26_16_47_55.log) | [Link](https://drive.google.com/drive/folders/1oVAIljTEIA3b0BHRVjcnukMf3POQQ3rw?usp=sharing) |
 
 ### ImageNet (3x128x128)
 To train and evaluate ECGAN-UCE on ImageNet (~12 days on 8 NVIDIA V100 GPUs):
@@ -125,7 +125,7 @@ python3 src/main.py -t -e -l -sync_bn -c src/configs/ILSVRC2012/imagenet_ecgan_v
 |---|---|---|---|---|---|---|---|---|
 | BigGAN | StudioGAN | 28.633 | 24.684 | 0.941 | 0.921 | - | - | - |
 | ContraGAN | StudioGAN | 25.249 | 25.161 | 0.947 | 0.855 | - | - | - |
-| Ours | - | 80.685 | 8.491 | 0.984 | 0.985 | [Cfg](./src/configs/ILSVRC2012/imagenet_ecgan_v2_contra_1_0p05.json) | [Log](./logs/ILSVRC2012/imagenet_ecgan_v2_contra_1_0p05-train-2021_10_03_00_11_58.log) | [Link](https://drive.google.com/drive/folders/1EkcotNsnA-KBvOCFkvpJpUVoSDRxk-EV?usp=sharing) |
+| Ours | - | **80.685** | **8.491** | **0.984** | **0.985** | [Cfg](./src/configs/ILSVRC2012/imagenet_ecgan_v2_contra_1_0p05.json) | [Log](./logs/ILSVRC2012/imagenet_ecgan_v2_contra_1_0p05-train-2021_10_03_00_11_58.log) | [Link](https://drive.google.com/drive/folders/1EkcotNsnA-KBvOCFkvpJpUVoSDRxk-EV?usp=sharing) |
 
 
 ## Generated Images
