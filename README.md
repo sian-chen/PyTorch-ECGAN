@@ -1,6 +1,6 @@
 # Energy-based Conditional Generative Adversarial Network (ECGAN)
 
-This is the code for the NeurIPS 2021 paper "A Unified View of cGANs with and without Classifiers". The repository is modified from [StudioGAN](https://github.com/POSTECH-CVLab/PyTorch-StudioGAN). If you find our work useful, please consider citing the following paper:
+This is the code for the NeurIPS 2021 paper "[A Unified View of cGANs with and without Classifiers](https://arxiv.org/abs/2111.01035)". The repository is modified from [StudioGAN](https://github.com/POSTECH-CVLab/PyTorch-StudioGAN). If you find our work useful, please consider citing the following paper:
 ```bib
 @inproceedings{chen2021ECGAN,
   title   = {A Unified View of cGANs with and without Classifiers},
@@ -9,6 +9,7 @@ This is the code for the NeurIPS 2021 paper "A Unified View of cGANs with and wi
   year    = {2021}
 }
 ```
+Please feel free to contact [Si-An Chen](https://scholar.google.com/citations?hl=en&user=XtkmEncAAAAJ) if you have any questions about the code/paper.
 
 ## Introduction
 We propose a new Conditional Generative Adversarial Network (cGAN) framework called Energy-based Conditional Generative Adversarial Network (ECGAN) which provides a unified view of cGANs and achieves state-of-the-art restuls. We use the decomposition of the joint probability distribution to connect the goals of cGANs and classification as a unified framework. The framework, along with a classic energy model to parameterize distributions, justifies the use of classifiers for cGANs in a principled manner. It explains several popular cGAN variants, such as ACGAN, ProjGAN, and ContraGAN, as special cases with different levels of approximations. An illustration of the framework is shown below.
