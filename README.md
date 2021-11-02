@@ -3,13 +3,13 @@
 This repository is the official implementation of the paper "A Unified View of cGANs with and without Classifiers".
 The code is modified from [StudioGAN](https://github.com/POSTECH-CVLab/PyTorch-StudioGAN).
 
-## Notes for Macaca
+## Notes
 
 1. Activate your virtual environment (conda or docker)
 
 2. Download and extract ImageNet data
 ```
-scp macacaxdrz@cl5.learner.csie.ntu.edu.tw:/tmp2/skg/ILSVRC2012.tar.gz data/
+scp mxxxxxxxxz@lab_machine:/tmp2/skg/ILSVRC2012.tar.gz data/
 cd data/
 tar zxvf ILSVRC2012.tar.gz
 cd ../
