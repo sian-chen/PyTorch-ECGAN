@@ -4,7 +4,7 @@ This is the code for the NeurIPS 2021 paper "[A Unified View of cGANs with and w
 ```bib
 @inproceedings{chen2021ECGAN,
   title   = {A Unified View of cGANs with and without Classifiers},
-  author  = {Si-An Chen, Chun-Liang Li, Hsuan-Tien Lin},
+  author  = {Si-An Chen and Chun-Liang Li and Hsuan-Tien Lin},
   booktitle = {Advances in Neural Information Processing Systems},
   year    = {2021}
 }
